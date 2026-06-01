@@ -1,6 +1,7 @@
 import pandas as pd
 from playwright.sync_api import sync_playwright
 from abc import ABC, abstractmethod
+import os
 
 
 class BaseJobScraper(ABC):
@@ -70,20 +71,25 @@ class BaseJobScraper(ABC):
             return ""
 
     def save_results(self):
-        """
-        Converts the collected jobs list into a Pandas DataFrame and
-        exports it as a UTF-8 encoded CSV.
-        """
         if not self.jobs:
             print("No jobs found to save.")
             return
 
+        os.makedirs("results", exist_ok=True)
+
+        file_path = os.path.join("results", self.output_filename)
+
+        # Delete existing file if present
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Deleted existing file: {file_path}")
+
         df = pd.DataFrame(self.jobs)
 
         df.to_csv(
-            self.output_filename,
+            file_path,
             index=False,
             encoding="utf-8-sig"
         )
 
-        print(f"\nSaved {len(df)} jobs -> {self.output_filename}")
+        print(f"Saved {len(df)} jobs -> {file_path}")
